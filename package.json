@@ -1,0 +1,24 @@
+{
+  "name": "docbot-telemed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DocBot TeleMed — full-stack telemedicine platform (patient / doctor / admin)",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "setup": "npm install && npm run db:setup --workspace server && npm run seed",
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
+    "dev:server": "npm run dev --workspace server",
+    "dev:client": "npm run dev --workspace client",
+    "seed": "npm run seed --workspace server",
+    "db:setup": "npm run db:setup --workspace server",
+    "build": "npm run build --workspace server && npm run build --workspace client",
+    "typecheck": "npm run typecheck --workspace server && npm run typecheck --workspace client",
+    "test": "npm run test --workspace server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

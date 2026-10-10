@@ -1,0 +1,43 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+client/dist/
+server/dist/
+client/.vite/
+
+# env — never commit secrets
+.env
+.env.local
+.env.*.local
+server/.env
+client/.env
+client/.env.local
+
+# databases / local data
+data/
+*.sqlite
+*.sqlite3
+pglite-data/
+server/data/
+
+# uploads (verification docs are private)
+uploads/
+server/uploads/
+
+# logs
+*.log
+npm-debug.log*
+
+# editors
+.vscode/
+.idea/
+.DS_Store
+
+# office lock/temp files
+~$*
+~WRL*.tmp
+
+# agent workspace metadata
+.freebuff/

@@ -1,11 +1,21 @@
 /**
  * Analyze the augmented disease-symptom CSV: stats + sample rows.
- * Usage: npx tsx src/scripts/analyze-dataset.ts [path-to-csv]
+ * Usage: npx tsx src/scripts/analyze-dataset.ts [path-to-csv(.gz)]
  */
 import fs from 'node:fs';
 import readline from 'node:readline';
+import zlib from 'node:zlib';
+import { resolveDataset } from './dataset-path.js';
 
-const csvPath = process.argv[2] || 'C:/Users/sanja/AppData/Local/Temp/diseases.csv';
+const csvPath =
+  process.argv[2] ||
+  resolveDataset('Final_Augmented_dataset_Diseases_and_Symptoms.csv.gz');
+
+function openCsv(p: string) {
+  return p.endsWith('.gz')
+    ? fs.createReadStream(p).pipe(zlib.createGunzip())
+    : fs.createReadStream(p, { encoding: 'utf8' });
+}
 
 // Minimal CSV parser (RFC4180: quoted fields, escaped quotes)
 function parseLine(line: string): string[] {
@@ -32,7 +42,7 @@ function parseLine(line: string): string[] {
 }
 
 async function main(): Promise<void> {
-  const rl = readline.createInterface({ input: fs.createReadStream(csvPath, 'utf8'), crlfDelay: Infinity });
+  const rl = readline.createInterface({ input: openCsv(csvPath), crlfDelay: Infinity });
   let header: string[] | null = null;
   let rowCount = 0;
   const diseases = new Map<string, number>();

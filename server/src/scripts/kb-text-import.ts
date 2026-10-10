@@ -5,7 +5,7 @@
  *   npm run kb:text-import --workspace server
  *   npm run kb:text-import --workspace server -- C:/path/to/Symptom2Disease.csv
  *
- * Default CSV: C:/Users/sanja/AppData/Local/Temp/symptom2disease.csv
+ * Default CSV: datasets/Symptom2Disease.csv (ships with the repo)
  * Safe to re-run: replaces all rows in kb_text_classes.
  */
 import fs from 'node:fs';
@@ -13,8 +13,9 @@ import readline from 'node:readline';
 import { createStandaloneDb } from '../db/index.js';
 import { tokenize } from '../docbot/text-kb.js';
 import { labelToSpecialty } from '../docbot/text-kb.js';
+import { resolveDataset } from './dataset-path.js';
 
-const DEFAULT_CSV = process.env.KB_TEXT_CSV_PATH || 'C:/Users/sanja/AppData/Local/Temp/symptom2disease.csv';
+const DEFAULT_CSV = resolveDataset('Symptom2Disease.csv', process.env.KB_TEXT_CSV_PATH);
 
 export function parseCsvLine(line: string): string[] {
   const out: string[] = [];
@@ -44,7 +45,7 @@ async function main(): Promise<void> {
   if (!fs.existsSync(csvPath)) {
     console.error(`[kb:text-import] CSV not found: ${csvPath}`);
     console.error('Pass a readable copy as an argument, e.g.:');
-    console.error('  npm run kb:text-import --workspace server -- C:/Users/sanja/Downloads/Symptom2Disease.csv');
+    console.error('  npm run kb:text-import --workspace server -- C:/path/to/Symptom2Disease.csv');
     process.exit(1);
   }
 

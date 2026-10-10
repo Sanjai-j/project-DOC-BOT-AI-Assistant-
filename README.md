@@ -6,6 +6,24 @@ A full-stack **telemedicine web application** with three roles — **Patient**, 
 
 ---
 
+## Demo
+
+![DocBot TeleMed landing page](docs/screenshots/landing.png)
+
+**DocBot in action** — the patient describes symptoms in plain words; DocBot replies with statistically associated conditions from the disease–symptom dataset, a specialty suggestion, and one-click doctor discovery:
+
+![DocBot chat conversation](docs/screenshots/docbot-chat.png)
+
+**Admin operations** — doctor verification, platform health, appointment/specialty analytics over 6,212 doctors and 74 hospitals:
+
+![Admin dashboard](docs/screenshots/admin-dashboard.png)
+
+More: [How it works](docs/screenshots/how-it-works.png) · [Patient dashboard](docs/screenshots/patient-dashboard.png) · [Find doctors](docs/screenshots/find-doctors.png)
+
+To try it live on your machine: run `npm run dev` (see Quick start below) and log in with the demo accounts. Screenshots are regenerated with `node scripts/screenshots.mjs` while the app is running.
+
+---
+
 ## Quick start (zero configuration)
 
 ```bash
@@ -115,10 +133,10 @@ Set `AI_API_KEY` (and optionally `AI_BASE_URL`/`AI_MODEL`) and DocBot uses the L
 DocBot is trained on **Final_Augmented_dataset_Diseases_and_Symptoms** (246,945 rows, 773 diseases, 377 symptoms). The dataset is imported into three `kb_*` tables (`kb_diseases`, `kb_symptoms`, `kb_disease_symptom`) and used at chat time to recognize symptoms, surface statistically associated conditions, and route to the right specialty:
 
 ```bash
-npm run kb:import --workspace server -- C:/path/to/Final_Augmented_dataset_Diseases_and_Symptoms.csv
+npm run kb:import --workspace server
 ```
 
-(If the CSV is locked by Windows, copy it first — e.g. to `%TEMP%/diseases.csv` — and pass that path. The default is already `%TEMP%/diseases.csv`.)
+The 182 MB CSV ships gzipped at [`datasets/`](datasets/) (1.6 MB) and is decompressed on the fly — no path argument needed. See [datasets/README.md](datasets/README.md) for details on all four datasets.
 
 The chat pipeline is: **emergency detection → rule engine → KB enrichment (dataset-trained) → optional LLM**. Emergencies always short-circuit everything; KB replies always carry the not-a-diagnosis disclaimer; the KB can only confirm or improve specialty suggestions, never suppress them.
 
@@ -127,7 +145,7 @@ The chat pipeline is: **emergency detection → rule engine → KB enrichment (d
 A second dataset, **Symptom2Disease.csv** (1,200 labeled patient descriptions across 24 diseases), trains DocBot's *language* side: a Naive Bayes text classifier stored in `kb_text_classes`. It handles free-form descriptions that never name a canonical symptom (e.g. "silver like dusting on my skin" → Psoriasis → Dermatologist):
 
 ```bash
-npm run kb:text-import --workspace server -- C:/path/to/Symptom2Disease.csv
+npm run kb:text-import --workspace server
 ```
 
 Hold-out evaluation (train 80% / test 20%): **97.1% top-1 accuracy, 100% top-3, 99.6% specialty agreement**. Re-run anytime with `npm run kb:eval --workspace server`.
@@ -143,7 +161,7 @@ A third dataset — **144 curated conditions with symptom lists, recommended spe
 - **Fallback routing**: when the statistical KBs are inconclusive, the curated condition list decides specialty + urgency.
 
 ```bash
-npm run kb:triage-import --workspace server -- C:/path/to/doc_bot_medical_symptom_training_dataset.csv
+npm run kb:triage-import --workspace server
 ```
 
 Full pipeline: **emergency detection → red-flag scan → rule engine → KB symptoms → text classifier → curated triage**. Every layer can escalate to the emergency card; none can downgrade it.
@@ -157,10 +175,10 @@ The bookable doctor directory is imported from **doc_bot_india_doctor_directory_
 - deterministic synthetic ratings/review counts (the dataset contains none), stable across re-imports
 
 ```bash
-npm run doctors:import --workspace server -- C:/path/to/doc_bot_india_doctor_directory_synthetic.csv
+npm run doctors:import --workspace server
 ```
 
-(Default path is the Downloads folder on the dev machine.) Doctor logins use the full name + Doctor ID + password, e.g. **Demo Doctor 0001 / DOC200001 / doctor123**.
+(Defaults to the copy in `datasets/`; pass a path to use another CSV.) Doctor logins use the full name + Doctor ID + password, e.g. **Demo Doctor 0001 / DOC200001 / doctor123**.
 
 ---
 
@@ -283,12 +301,15 @@ server/src
   services/    settings, notifications, slots, reminders
   docbot/      rules engine + LLM adapter
   realtime/    socket.io signaling
-  scripts/     db-setup, seed, check, e2e
+  scripts/     db-setup, seed, check, e2e, dataset importers
 client/src
   pages/       landing, auth (3 roles), dashboards, DocBot, discovery, booking, video room, admin…
   components/  shared UI (layouts, badges, modals)
   lib/         api client, reminder alarms
   context/     auth
+datasets/      the 4 training datasets (see datasets/README.md)
+docs/          API reference + README screenshots
+scripts/       screenshot capture (CDP, zero-dependency)
 ```
 
 ## Development order reference

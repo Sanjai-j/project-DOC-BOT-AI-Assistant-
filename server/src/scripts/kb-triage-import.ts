@@ -4,12 +4,18 @@
  *
  *   npm run kb:triage-import --workspace server
  *   npm run kb:triage-import --workspace server -- C:/path/to/..._training_dataset.csv
+ *
+ * Default CSV: datasets/doc_bot_medical_symptom_training_dataset.csv (ships with the repo)
  */
 import fs from 'node:fs';
 import readline from 'node:readline';
 import { createStandaloneDb } from '../db/index.js';
+import { resolveDataset } from './dataset-path.js';
 
-const DEFAULT_CSV = process.env.KB_TRIAGE_CSV_PATH || 'C:/Users/sanja/AppData/Local/Temp/triage.csv';
+const DEFAULT_CSV = resolveDataset(
+  'doc_bot_medical_symptom_training_dataset.csv',
+  process.env.KB_TRIAGE_CSV_PATH
+);
 
 export function parseCsvLine(line: string): string[] {
   const out: string[] = [];

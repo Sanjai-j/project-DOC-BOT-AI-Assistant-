@@ -21,12 +21,11 @@
  */
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
 import { createStandaloneDb, type DB } from '../db/index.js';
 import { hashPassword } from '../utils/auth.js';
+import { resolveDataset } from './dataset-path.js';
 
-const DEFAULT_CSV =
-  'C:/Users/sanja/Downloads/doc_bot_india_doctor_directory_synthetic.csv';
+const DEFAULT_CSV = resolveDataset('doc_bot_india_doctor_directory_synthetic.csv');
 
 const csvPath = process.argv[2] ?? DEFAULT_CSV;
 const EMAIL_DOMAIN = '@docbot.dev';

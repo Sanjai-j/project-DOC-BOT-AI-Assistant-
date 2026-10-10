@@ -4,8 +4,9 @@
  *   npm run kb:import --workspace server
  *   npm run kb:import --workspace server -- C:/path/to/Final_Augmented_dataset_....csv
  *
- * Default CSV path: C:/Users/sanja/Downloads/datasetfordis/Final_Augmented_dataset_Diseases_and_Symptoms.csv
- * (If that file is locked by Windows, copy it first — e.g. %TEMP%/diseases.csv — and pass it as the argument.)
+ * Default CSV path: datasets/Final_Augmented_dataset_Diseases_and_Symptoms.csv.gz
+ * (shipped with the repo; a plain .csv path also works, and .gz is decompressed
+ * on the fly). Override with KB_CSV_PATH or pass a path as the argument.
  *
  * Streams the CSV row by row, aggregates disease -> symptom co-occurrence in
  * memory (773 diseases x 377 symptoms = ~291k cells), then writes to Postgres
@@ -13,12 +14,20 @@
  */
 import fs from 'node:fs';
 import readline from 'node:readline';
+import zlib from 'node:zlib';
 import { createStandaloneDb } from '../db/index.js';
 import { assignSpecialty } from '../docbot/specialty-map.js';
+import { resolveDataset } from './dataset-path.js';
 
-const DEFAULT_CSV =
-  process.env.KB_CSV_PATH ||
-  'C:/Users/sanja/AppData/Local/Temp/diseases.csv';
+const DATASET_NAME = 'Final_Augmented_dataset_Diseases_and_Symptoms.csv.gz';
+
+const DEFAULT_CSV = resolveDataset(DATASET_NAME, process.env.KB_CSV_PATH);
+
+function openCsv(csvPath: string) {
+  return csvPath.endsWith('.gz')
+    ? fs.createReadStream(csvPath).pipe(zlib.createGunzip())
+    : fs.createReadStream(csvPath, { encoding: 'utf8' });
+}
 
 // ---------------------------------------------------------------------------
 // Minimal RFC4180 CSV line parser (quoted fields, escaped quotes).
@@ -56,7 +65,7 @@ async function main(): Promise<void> {
   if (!fs.existsSync(csvPath)) {
     console.error(`[kb:import] CSV not found: ${csvPath}`);
     console.error('Pass a readable copy as an argument, e.g.:');
-    console.error('  npm run kb:import --workspace server -- C:/Users/sanja/AppData/Local/Temp/diseases.csv');
+    console.error('  npm run kb:import --workspace server -- C:/path/to/Final_Augmented_dataset_Diseases_and_Symptoms.csv');
     process.exit(1);
   }
 
@@ -68,7 +77,7 @@ async function main(): Promise<void> {
   const diseases = new Map<string, DiseaseAgg>();
 
   const rl = readline.createInterface({
-    input: fs.createReadStream(csvPath, 'utf8'),
+    input: openCsv(csvPath),
     crlfDelay: Infinity,
   });
 

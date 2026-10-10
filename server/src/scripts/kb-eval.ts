@@ -9,8 +9,9 @@
 import fs from 'node:fs';
 import readline from 'node:readline';
 import { tokenize, labelToSpecialty } from '../docbot/text-kb.js';
+import { resolveDataset } from './dataset-path.js';
 
-const DEFAULT_CSV = 'C:/Users/sanja/AppData/Local/Temp/symptom2disease.csv';
+const DEFAULT_CSV = resolveDataset('Symptom2Disease.csv');
 
 function parseCsvLine(line: string): string[] {
   const out: string[] = [];

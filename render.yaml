@@ -1,0 +1,43 @@
+# Render blueprint — deploy the whole app as a SINGLE service.
+#
+# The Express server serves the built React client from client/dist
+# (server/src/index.ts), so no separate frontend host and no CORS setup.
+#
+# Connect this repo at https://dashboard.render.com/blueprints and Render
+# provisions everything below. Then set the env vars (DATABASE_URL,
+# ADMIN_PASSWORD). See README > Deployment.
+
+services:
+  - type: web
+    name: docbot-telemed
+    runtime: node
+    plan: free # upgrade as needed
+    # --include=dev: the build needs typescript/vite, the start needs tsx.
+    buildCommand: npm install --include=dev && npm run build --workspace client && npm run build --workspace server
+    # Schema is applied on boot; seed is idempotent (skips existing rows).
+    startCommand: npm run seed --workspace server && npm start --workspace server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # PORT is provided by Render automatically.
+      - key: DATABASE_URL
+        sync: false # paste a Supabase/Postgres connection string
+      - key: JWT_SECRET
+        generateValue: true # random, unique per environment
+      - key: ADMIN_EMAIL
+        value: admin@docbot.dev
+      - key: ADMIN_PASSWORD
+        sync: false # choose the admin password
+      # Optional — without AI_API_KEY DocBot uses the built-in rule engine.
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gpt-4o-mini
+      - key: AI_BASE_URL
+        value: https://api.openai.com/v1
+      # Optional — without DATABASE_URL the app uses embedded PGlite in the
+      # instance temp dir (demo data resets on redeploy, but seed re-runs on
+      # boot so it comes back). For durable PGlite, attach a disk and set:
+      # - key: DATA_DIR
+      #   value: /var/data

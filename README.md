@@ -284,9 +284,32 @@ Admin       GET  /api/admin/stats | /doctors | /patients | /hospitals | /appoint
 
 ## Deployment (free/low-cost)
 
-**Frontend** — Netlify / Vercel / Cloudflare Pages (free): build `client` (`npm run build` inside `client/`), publish `client/dist`, set `VITE_GOOGLE_MAPS_API_KEY` if using maps.
+The app builds to a **single service**: when `client/dist` exists, the Express server serves the built React app (with SPA fallback) alongside the API — no separate frontend host, no CORS configuration.
 
-**Backend** — Render / Railway / Fly.io free tier: root directory `server`, start command `npm start` (add `"start": "node dist/index.js"` after `npm run build`), set env vars (`DATABASE_URL`, `JWT_SECRET`, `ADMIN_*`, optional `AI_*`). Use hosted Postgres (Supabase free tier) via `DATABASE_URL`.
+```bash
+npm install
+npm run build          # builds client/dist + server/dist
+npm start              # serves API + web app on one port
+```
+
+### Render (one-click)
+
+This repo ships a [`render.yaml`](render.yaml) blueprint. On [render.com/new](https://dashboard.render.com/new) choose **Blueprint**, point it at this repo, and Render builds and deploys everything. You only fill in env vars:
+
+| Variable | Required | Notes |
+|---|---|---|
+| `DATABASE_URL` | recommended | Supabase/Postgres free tier. Without it the app uses embedded PGlite (demo data resets on redeploy; the seed re-runs on boot so it returns) |
+| `JWT_SECRET` | auto | the blueprint generates one |
+| `ADMIN_PASSWORD` | yes | admin login password |
+| `AI_API_KEY` | optional | enables LLM-powered DocBot; otherwise the rule engine is used |
+
+The blueprint seeds demo data on boot (idempotent — safe on every restart). Health checks hit `/api/health`.
+
+### Alternatives
+
+**Split deploy** — frontend on Netlify / Vercel / Cloudflare Pages (build `client`, publish `client/dist`), backend on Render / Railway / Fly.io (root `server`, `npm start`). Set the API origin in the client if they're on different origins.
+
+**Any VPS / Node host** — `npm install && npm run build && npm start`, expose the single port. Set `PORT`, `DATABASE_URL`, `JWT_SECRET`, `ADMIN_*` (and optionally `AI_*`).
 
 **WebRTC note:** peer-to-peer with public STUN works for most networks; for symmetric-NAT offices add a TURN server (e.g. coturn or a metered TURN provider) via `iceServers` in `client/src/pages/VideoRoom.tsx`.
 

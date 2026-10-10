@@ -4,6 +4,7 @@
 import express from 'express';
 import http from 'node:http';
 import cors from 'cors';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from './config.js';
@@ -60,12 +61,27 @@ app.use('/api/emergency', emergencyRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use('/api', notFoundHandler);
+
+// Production single-service mode: if the client has been built, serve it
+// straight from Express (with an SPA fallback). Keeps deploys to one service
+// and avoids CORS entirely. No-op in dev, where Vite serves the client.
+const clientDist = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../client/dist'
+);
+if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+  app.use(express.static(clientDist, { index: false, maxAge: '1h' }));
+  app.get(/^(?!\/api|\/socket\.io).*/, (_req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+  console.log(`[boot] serving client build from ${clientDist}`);
+}
+
 app.use(onMulterError);
 app.use(errorHandler);
 
 async function main(): Promise<void> {
   const db = await getDb();
-  const fs = await import('node:fs');
   const schema = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'db', 'schema.sql'), 'utf8');
   await db.query(schema);
   console.log('[boot] schema ensured');

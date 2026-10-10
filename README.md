@@ -1,8 +1,8 @@
-# 🩺 DocBot TeleMed
+#  DocBot TeleMed
 
 A full-stack **telemedicine web application** with three roles — **Patient**, **Doctor**, **Admin** — featuring an AI medical-guidance assistant (DocBot), doctor verification, appointment booking with doctor approval, WebRTC video consultations, reminders, emergency calling, and hospital/doctor discovery.
 
-> ⚠️ **Medical safety notice:** DocBot TeleMed is a software platform, not a medical provider. DocBot provides general guidance and is **not a medical diagnosis**. It is never a replacement for a qualified doctor. The platform is **not an emergency medical service** — in a life-threatening emergency, contact your local emergency services immediately.
+> **Medical safety notice:** DocBot TeleMed is a software platform, not a medical provider. DocBot provides general guidance and is **not a medical diagnosis**. It is never a replacement for a qualified doctor. The platform is **not an emergency medical service** — in a life-threatening emergency, contact your local emergency services immediately.
 
 ---
 
